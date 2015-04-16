@@ -1,3 +1,51 @@
+library(lubridate)
+library(XML)
+suppressMessages(library(dplyr))
+library(tidyr)
+
+loadTeam <- function(name) {
+  cleanName <- cleanName(name)
+  filename <- downloadTeam(cleanName)
+  playerLinks <- parseTeamPlayerLinks(filename)
+  names <- row.names(playerLinks)
+  
+  f <- downloadPlayer(names[1],playerLinks[1])
+  players <- parsePlayer(names[1], f)
+  
+  for (i in 2:dim(playerLinks)[1]) {
+    #print(paste0("loading player: ",names[i]))
+    f <- downloadPlayer(names[i],playerLinks[i])
+    p <- parsePlayer(names[i], f)
+    players <- rbind(players, p)
+  }
+  players$team <- name
+  players
+}
+
+cleanName <- function(name) {
+  name <- gsub(" ","-",tolower(name))
+  name <- gsub("\\.","",name)
+  name
+}
+
+downloadTeam <- function(name) {
+  url <- paste0("http://www.sfl.ch/superleague/klubs/",name,"/season/201415/")
+  filename <- paste0("teams/",name,".html")
+  if (!file.exists(filename)) {
+    download.file(url, filename)
+  }
+  filename
+}
+
+parseTeamPlayerLinks <- function(filename) {
+  document <- htmlTreeParse(filename, useInternalNodes = T)
+  names <- xpathApply(document, "//table[@id='team']//a", xmlValue)
+  attributes <- xpathApply(document, "//table[@id='team']//a", xmlAttrs)
+  links <- sapply(attributes, function(e) { e["href"] })
+  c <- cbind(link=paste0("http://www.sfl.ch/",links))
+  row.names(c) <- names
+  c
+}
 
 downloadPlayer <- function(name, link) {
   filename <- paste0("players/", cleanName(name), ".html")
@@ -38,7 +86,7 @@ parsePlayer <- function(name, filename) {
   } else {
     player <- mutate(player, shots = NA)
   }
-   
+  
   if ("Tore" %in% colnames(player)) {
     player <- mutate(player, goals = as.numeric(player$Tore))
   } else {
@@ -57,13 +105,5 @@ parsePlayer <- function(name, filename) {
     player <- mutate(player, position = NA)
   }
   
-  ##games.played = as.numeric(Spiele), 
-  ##minutes.played = as.numeric(Spielminuten),
-  ##goals = as.numeric(Tore),
-  ##assists = as.numeric(Assists),
-  ##substitutes.out = as.numeric(Auswechslungen),
-  ##substitutes.in = as.numeric(Einwechslungen),
-  ##yellow.cards = as.numeric("Gelbe Karten"),
-  ##red.cards = as.numeric("Rote Karten")
   player %>% select(name, birthday, height, weight, shots, goals, minutes.played, position)
 }
