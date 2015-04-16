@@ -19,7 +19,10 @@ Die Analyse skizziere ich mir etwa so:
 
 1. Laden der Daten
 2. Bereinigung und Transformation der Daten
-3. Graphische Aufbereitung
+3. Graphische Darstellung
+4. Interpretation
+
+Der gesamten Code dieser Analyse ist auf [Github](https://github.com/andreashermann/football-analysis) öffentlich verfügbar.
 
 ## Laden der Daten
 Als Datenquelle möchte ich die öffentlich verfügbaren Statistiken der [offiziellen Website](http://www.sfl.ch) der Swiss Football League nutzen.
@@ -51,14 +54,14 @@ player.data <- rbind(tables[[1]], tables[[3]])
 source("functions.R")
 players <- rbind(
     loadTeam("FC Basel 1893"),
-    #loadTeam("FC Aarau"),
-    #loadTeam("FC Zuerich"),
-    #loadTeam("FC Luzern"),
-    #loadTeam("FC Sion"),
-    #loadTeam("FC St. Gallen"),
-    #loadTeam("FC Thun"),
-    #loadTeam("FC Vaduz"),
-    #loadTeam("Grasshopper Club"),
+    loadTeam("FC Aarau"),
+    loadTeam("FC Zuerich"),
+    loadTeam("FC Luzern"),
+    loadTeam("FC Sion"),
+    loadTeam("FC St. Gallen"),
+    loadTeam("FC Thun"),
+    loadTeam("FC Vaduz"),
+    loadTeam("Grasshopper Club"),
     loadTeam("BSC Young Boys")
   )
 ```
@@ -85,10 +88,11 @@ player.statistics <- players %>%
   select(name, goals, shots, minutes.played, team, shots.per.goal, minutes.per.shot, minutes.per.goal)
 ```
 
-## Graphische Aufbereitung
+## Graphische Darstellung
 
-Mit der Library ggplot2 kann man relativ schnell sehr schöne Graphen erstellen.
+Mit der Library [ggplot2](http://ggplot2.org) kann man relativ schnell sehr schöne Graphen erstellen.
 Die Feinjustierung benötigt dann aber doch noch einige Zeit.
+
 
 ```{r, echo=TRUE}
 library(ggplot2)
@@ -108,3 +112,8 @@ ggplot(player.statistics, aes(minutes.per.shot, shots.per.goal)) +
     geom_text(label="Effizient", x=73.5, y=2.75, colour = "red", hjust=0, alpha=0.075) + 
     theme(legend.position="none")
 ```
+
+## Interpretation
+
+Mit dem obigen Befehl wurde bereits ein schönes Diagramm generiert.
+Die Interpretation hat bereits in diesem [Blogpost](http://blog.andyhermann.ch/2015/02/superleague-stuermer-statistik.html) stattgefunden.
